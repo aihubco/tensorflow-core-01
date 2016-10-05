@@ -1,0 +1,158 @@
+# Ubuntu 14.04 / Python 2.7 : Install Tensorflow with CUDA 8.0:
+
+1. Download & setup CUDA 8.0
+    (install driver and toolkit)
+
+    Alternative approach for driver installation (version 370+)
+        sudo add-apt-repository ppa:graphics-drivers/ppa
+        sudo apt-get update
+        > Got to Ubuntu Main menu > Additional Drivers > Change driver
+
+
+2. Download & setup CUDnn
+    wget https://developer.nvidia.com/compute/machine-learning/cudnn/secure/v5.1/prod/8.0/cudnn-8.0-linux-x64-v5.1-tgz
+    sudo tar -xvf cudnn-8.0-linux-x64-v5.1.tgz -C /usr/local
+
+
+Step 3. Install and upgrade PIP
+    TensorFlow itself can be installed using the pip package manager. First, make sure that your system has pip installed and updated:
+
+    $ sudo apt-get install python-pip python-dev
+    $ pip install --upgrade pip
+
+
+
+Step 4. Install Bazel
+    To build TensorFlow from source, the Bazel build system must first be installed as follows. Full details are available here.
+
+    $ sudo apt-get install software-properties-common swig
+    $ sudo add-apt-repository ppa:webupd8team/java
+    $ sudo apt-get update
+    $ sudo apt-get install oracle-java8-installer
+    $ echo "deb http://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+    $ curl https://storage.googleapis.com/bazel-apt/doc/apt-key.pub.gpg | sudo apt-key add -
+    $ sudo apt-get update
+    $ sudo apt-get install bazel
+
+
+Step 5. Install TensorFlow
+    To obtain the best performance with TensorFlow we recommend building it from source.
+    First, clone the TensorFlow source code repository:
+
+    $ git clone https://github.com/tensorflow/tensorflow
+    $ cd tensorflow
+    $ git reset --hard 70de76e
+
+    Then run the configure script as follows:
+
+    $ ./configure
+    Please specify the location of python. [Default is /usr/bin/python]: [enter]
+    Do you wish to build TensorFlow with Google Cloud Platform support? [y/N] n
+    No Google Cloud Platform support will be enabled for TensorFlow
+    Do you wish to build TensorFlow with GPU support? [y/N] y
+    GPU support will be enabled for TensorFlow
+    Please specify which gcc nvcc should use as the host compiler. [Default is /usr/bin/gcc]: [enter]
+    Please specify the Cuda SDK version you want to use, e.g. 7.0. [Leave empty to use system default]: 8.0
+    Please specify the location where CUDA 8.0 toolkit is installed. Refer to README.md for more details. [Default is /usr/local/cuda]: [enter]
+    Please specify the Cudnn version you want to use. [Leave empty to use system default]: 5
+    Please specify the location where cuDNN 5 library is installed. Refer to README.md for more details. [Default is /usr/local/cuda]: [enter]
+    Please specify a list of comma-separated Cuda compute capabilities you want to build with.
+    You can find the compute capability of your device at: https://developer.nvidia.com/cuda-gpus.
+    Please note that each additional compute capability significantly increases your build time and binary size.
+    [Default is: "3.5,5.2"]: 5.0, 5.2,6.1 [see https://developer.nvidia.com/cuda-gpus]
+    Setting up Cuda include
+    Setting up Cuda lib64
+    Setting up Cuda bin
+    Setting up Cuda nvvm
+    Setting up CUPTI include
+    Setting up CUPTI lib64
+    Configuration finished
+
+    Then call bazel to build the TensorFlow pip package:
+
+    bazel build -c opt --config=cuda //tensorflow/tools/pip_package:build_pip_package
+    bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
+    And finally install the TensorFlow pip package
+
+    Python 2.7:
+
+    $ sudo pip install --upgrade /tmp/tensorflow_pkg/tensorflow-0.9.0-*.whl
+
+
+Step 5. Upgrade protobuf
+    Upgrade to the latest version of the protobuf package:
+
+    Python 2.7:
+
+    $ sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/protobuf-3.0.0b2.post2-cp27-none-linux_x86_64.whl
+
+Step 6. Test your installation
+    To test the installation, open an interactive Python shell and import the TensorFlow module:
+
+    $ cd
+    $ python
+    …
+    >>> import tensorflow as tf
+    I tensorflow/stream_executor/dso_loader.cc:105] successfully opened CUDA library libcublas.so locally
+    I tensorflow/stream_executor/dso_loader.cc:105] successfully opened CUDA library libcudnn.so locally
+    I tensorflow/stream_executor/dso_loader.cc:105] successfully opened CUDA library libcufft.so locally
+    I tensorflow/stream_executor/dso_loader.cc:105] successfully opened CUDA library libcuda.so.1 locally
+    I tensorflow/stream_executor/dso_loader.cc:105] successfully opened CUDA library libcurand.so locally
+
+
+
+
+Troubleshooting:
+    WARGNING:
+        Buidling tensorflow WARNING ERROR: ... python_include not in 'third_party'. This will be an error in the future.
+
+    IGNORE.
+
+
+    ERROR:
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/__init__.py", line 23, in <module>
+            from tensorflow.python import *
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/__init__.py", line 52, in <module>
+            from tensorflow.core.framework.graph_pb2 import *
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/core/framework/graph_pb2.py", line 9, in <module>
+            from google.protobuf import symbol_database as _symbol_database
+          File "/usr/local/lib/python2.7/dist-packages/google/protobuf/symbol_database.py", line 180, in <module>
+            _DEFAULT = SymbolDatabase(pool=descriptor_pool.Default())
+        AttributeError: 'module' object has no attribute 'Default'
+
+    SOLUTION:
+        sudo pip install protobuf==3.0.0b2
+
+
+
+    ERROR:
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/__init__.py", line 23, in <module>
+            from tensorflow.python import *
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/__init__.py", line 97, in <module>
+            from tensorflow.python.platform import test
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/platform/test.py", line 63, in <module>
+            from tensorflow.python.framework import test_util
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/framework/test_util.py", line 41, in <module>
+            from tensorflow.python.platform import googletest
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/platform/googletest.py", line 32, in <module>
+            from tensorflow.python.platform import benchmark  # pylint: disable=unused-import
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/platform/benchmark.py", line 112, in <module>
+            class Benchmark(six.with_metaclass(_BenchmarkRegistrar, object)):
+          File "/usr/lib/python2.7/dist-packages/six.py", line 617, in with_metaclass
+            return meta("NewBase", bases, {})
+          File "/usr/local/lib/python2.7/dist-packages/tensorflow/python/platform/benchmark.py", line 107, in __new__
+            if not newclass.is_abstract():
+        AttributeError: type object 'NewBase' has no attribute 'is_abstract'
+
+    SOLUTION:
+        sudo pip uninstall six
+        sudo pip install six --upgrade --target="/usr/lib/python2.7/dist-packages"
+
+
+
+References:
+    http://www.nvidia.com/object/gpu-accelerated-applications-tensorflow-installation.html
