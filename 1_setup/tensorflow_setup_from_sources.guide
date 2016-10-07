@@ -1,7 +1,13 @@
 # Ubuntu 14.04 / Python 2.7 : Install Tensorflow with CUDA 8.0:
 
 1. Download & setup CUDA 8.0
+    Prerequisites:
+        sudo apt-get install build-essential gcc g++ make binutils linux-headers-`uname -r`
     (install driver and toolkit)
+    wget https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_linux-run
+    chmod +x cuda_8.0.44_linux-run
+    sudo ./cuda_8.0.44_linux-run
+
 
     Alternative approach for driver installation (version 370+)
         sudo add-apt-repository ppa:graphics-drivers/ppa

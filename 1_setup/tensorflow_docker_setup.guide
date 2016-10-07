@@ -1,3 +1,8 @@
+Prerequisites:
+    1. CUDA 8.0 & CUDnn 5.1
+        Follow 1 - 2 in tensorflow_setup_from_sources.guide
+
+Installation:
 1. install docker:
     sudo apt-get update
     sudo apt-get install linux-image-extra-$(uname -r) linux-image-extra-virtual

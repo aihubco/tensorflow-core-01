@@ -1,0 +1,54 @@
+Setting up reseach environment:
+    Option 1: Create on demand instance (~$0.65/h for g2.2xlarge - see EC2 pricing for exact info)
+
+        1. Go to EC2 AWS Console:
+        2. In section instanes = Select launch new instance
+        3. Select Community AIMs tab and find 'ami-77d29d60' instance (aihub-docker-tf-02)
+        4. In next screen select g2.2xlarge type
+        5. Make sure you properly generate and store access key (.pem file)
+        6. Skip to step 6. (Configure Security Group):
+            Select ssh access from Your PC only
+            Add rule ALL TCP and select access from Your PC only
+            Launch instance
+        6. As soon as your instance is up and running - SSH to your instance
+            You can find ssh link Go to ec2 instances, right click on instance and select connect in context menu
+        7. Run docker container with tensorflow and gpu support:
+            nvidia-docker run -v /home/ubuntu/efs:/notebooks/efs -it -p 8888:8888 gcr.io/tensorflow/tensorflow:latest-gpu
+        8. Launch web browser and type in http://PUBLIC-IP-OF-EC2-INSTANCE:8888
+            You will have access to your jupyter instance and notebooks
+
+        9. Your host filesystem folder /home/ubuntu/efs will be mounted to efs folder in docker container
+            you can either scp your local notebooks to EC2 instance, or clone git repository directly by:
+            git clone https://github.com/aihubco/tutorials
+
+
+    Option 2: Request spot instance (prices a subject to action bidding process: it can be as cheap, e.g. as $0.1 per single GPU instance, or as high as $10)
+        1. Got to EC2 AWS Console
+        2. In section Spot instanes = Select request Spot instance
+        3. Select AIM 'ami-77d29d60' instance (aihub-docker-tf-02) in the first screen, and select max price you are ready to pay.
+        Steps 4 - 7 are similar.
+
+        Be aware that in case of spot pricing you instance may be purged if current auction price is higher than your max price.
+
+
+Persisting environment:
+    Option 1: Git + SCP (On demand)
+        simply ssh, git and scp to your local machine
+
+    Option 2: S3 (On demand)
+        simply ssh, zip and upload to your S3 bucket with aws console
+
+    Option 3: EFS (On demand & spot instances)
+        In order to avoid data loss - you might want to consider mapping EFS to your instance with something like:
+        sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 $(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone).file-system-id.efs.aws-region.amazonaws.com:/   ~/efs
+
+        More instructions are available at: http://docs.aws.amazon.com/efs/latest/ug/wt1-test.html
+
+    Option 4: Local FS mount (On demand instances)
+        If you have very few files you might consider mapping remote FS to your local FS via ssh tunnel:
+            sudo apt-get install sshfs
+            sudo sshfs -o allow_other,IdentityFile=your-key.pem ubuntu@YOUR-INSTANCE.compute-1.amazonaws.com:/home/ubuntu/efs LOCAL_MACHINE_PATH/efs
+
+        I found that is not optimal, because sshfs sends uncompressed files which causes significant delays when projects are big enough.
+        Though it might work fine for experiments.
+

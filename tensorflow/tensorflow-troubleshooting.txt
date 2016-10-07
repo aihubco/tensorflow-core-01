@@ -1,0 +1,9 @@
+ISSUE:
+    TF occupies all available memory:
+
+SOLUTION:
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth=True
+    sess = tf.Session(config=config)
+
+    This will prevent tensorflow from allocating memory and will make it grow as needed
